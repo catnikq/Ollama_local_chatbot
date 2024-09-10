@@ -1,0 +1,59 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .user { color: blue; }
+        .assistant { color: green; }
+        #chat-box {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-box">
+        {% for message in history %}
+            <div class="{{ message.role }}">
+                <strong>{{ message.role.capitalize() }}:</strong> {{ message.content }}
+            </div>
+        {% endfor %}
+    </div>
+    <form id="chat-form">
+        <input type="text" id="user_input" name="user_input" placeholder="Type your message here..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            $("#chat-form").on("submit", function (event) {
+                event.preventDefault();
+                var userInput = $("#user_input").val();
+                $.ajax({
+                    type: "POST",
+                    url: "/get_response",
+                    data: { user_input: userInput },
+                    success: function (data) {
+                        // Append new user message
+                        $("#chat-box").append('<div class="user"><strong>User:</strong> ' + userInput + '</div>');
+                        
+                        // Append new assistant message
+                        $("#chat-box").append('<div class="assistant"><strong>Assistant:</strong> ' + data.response + '</div>');
+                        
+                        // Update the full conversation history
+                        $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);  // Auto-scroll to the bottom
+                        $("#user_input").val("");  // Clear the input field
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
