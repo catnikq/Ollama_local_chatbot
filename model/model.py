@@ -16,6 +16,14 @@ class LLM:
         
         
     def default_prompt_template(self, user_input):
+        """Call this function to use default prompt template. Else create a new prompt.
+        
+        Args:
+            user_input(str): user input.
+        
+        Returns:
+            default_prompt(f_string)
+        """
         # Prompt template
         self.prompt_template = """
         You are an assistant. Your job is to answer user's concerns about specific documents.
@@ -31,18 +39,25 @@ class LLM:
             ("human", "{user_input}")
         ]
     )
-        
         return self.default_prompt
         
         
     def create_chain(self, prompt=None, historical_context=None):
+        """Create a new chain for invoking.
+
+        Args:
+            prompt (f_string, optional): Use a new prompt. Default None whil use default_prompt instead.
+            historical_context (list, optional): Use chat history as context. Default None
+
+        Returns:
+            chat_chain: chain for invoking responses.
+        """
         # Use the provided prompt template or default one if not specified
         prompt = prompt or self.default_prompt
         
         # Create and return a new LangChain with the LLM and specified prompt template
         chat_chain = prompt | self.model
         return chat_chain
-        
         
         
     def generate_response(self, chain, user_input, historical_context=None):
@@ -53,19 +68,13 @@ class LLM:
             user_input (str): The input text from the user.
         
         Returns:
-            response (str): The generated response from the LLM.
+            response (dict): The generated response from the LLM.
         """        
         # Prepare the input dictionary with the correct key
         input_dict = {"user_input": user_input}
         # Use the model to generate a response
         response = chain.invoke(input_dict)
         
+        # This will return metadatasm. If you want response content only, use print(response.content) after instantiating LLM()
         return response
-        
-        # Extract only the text portion of the response
-        # This assumes `response` is a dictionary-like object. Adjust accordingly if not.
-        # if isinstance(response, dict) and 'text' in response:
-        #     return response['text']
-        # else:
-        #     return str(response)  # Fallback to returning the entire response if the expected structure is different
         
