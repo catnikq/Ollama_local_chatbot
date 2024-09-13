@@ -4,7 +4,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import chromadb
 from chromadb.config import Settings
 from model.embedding_model import EmbeddingModel
-from chromadb.utils import similarity_functions
 
 
 class FileLoader:
@@ -13,13 +12,13 @@ class FileLoader:
         Initialize the FileLoader with ChromaDB settings and embedding model.
         """
         # Initialize Chromadb
-        self.chroma_client = chromadb.Client(
+        self.chroma_client = chromadb.PersistentClient(
             Settings(
                 persist_directory=db_path,
                 embedding_function=EmbeddingModel().generate_embedding
             )
         )
-
+    
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=500,
@@ -29,30 +28,6 @@ class FileLoader:
         # Default collection name (can be changed later)
         self.collection = None
 
-    def create_or_get_collection(self, name):
-        """
-        Creates a new ChromaDB collection with the specified name or retrieves an existing one.
-
-        Args:
-            name: The name of the collection to create or retrieve.
-        """
-        # Create or retrieve collection
-        if self.chroma_client.get_collection(name):
-            self.collection = self.chroma_client.get_collection(name=name)
-            print(f"Collection '{name}' loaded.")
-        else:
-            self.collection = self.chroma_client.create_collection(name=name)
-            print(f"Collection '{name}' created.")
-
-    # def create_collection(self, name):
-    #     """
-    #     Creates a new ChromaDB collection with the specified name.
-
-    #     Args:
-    #         name: The name of the collection to create.
-    #     """
-    #     # Create a new collection
-    #     self.collection = self.chroma_client.create_collection(name=name)
         
     def add_documents(self, pdf_files):
         """Add new pdf files as documents. Split documents into chunks and store in collection.
@@ -92,11 +67,7 @@ class FileLoader:
         """
         if not self.collection:
             raise ValueError("Collection is not set. Use 'create_or_get_collection' to set a collection.")
-        
-        # Initialize retriever with the chosen similarity function
-        retriever = chromadb.utils.Retriever(
-            collection=self.collection,
-            similarity_function=similarity_functions.cosine
-        )
-        return retriever
+    
+        # Create retriever
+        return self.collection.as_retriever()
         
