@@ -1,59 +1,124 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .user { color: blue; }
-        .assistant { color: green; }
-        #chat-box {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
+        body {
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 100%;
             padding: 10px;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #444;
+        }
+        .message {
             margin-bottom: 10px;
+        }
+        .user-message {
+            color: rgba(255, 255, 255, 0.904);
+        }
+        .bot-message {
+            color: rgb(255, 255, 255);
+        }
+        .input-container {
+            display: flex;
+            border-top: 1px solid #555;
+            padding: 10px;
+            background-color: #444;
+        }
+        .input-box {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #666;
+            color: white;
+            outline: none;
+        }
+        .send-button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #555;
+            color: white;
+            cursor: pointer;
+            outline: none;
+        }
+        .send-button:hover {
+            background-color: #666;
         }
     </style>
 </head>
 <body>
-    <div id="chat-box">
-        {% for message in history %}
-            <div class="{{ message.role }}">
-                <strong>{{ message.role.capitalize() }}:</strong> {{ message.content }}
-            </div>
-        {% endfor %}
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="input-container">
+            <input type="text" class="input-box" id="user-input" placeholder="Type your message..." onkeydown="handleKeyDown(event)">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
     </div>
-    <form id="chat-form">
-        <input type="text" id="user_input" name="user_input" placeholder="Type your message here..." required>
-        <button type="submit">Send</button>
-    </form>
 
     <script>
-        $(document).ready(function () {
-            $("#chat-form").on("submit", function (event) {
-                event.preventDefault();
-                var userInput = $("#user_input").val();
-                $.ajax({
-                    type: "POST",
-                    url: "/get_response",
-                    data: { user_input: userInput },
-                    success: function (data) {
-                        // Append new user message
-                        $("#chat-box").append('<div class="user"><strong>User:</strong> ' + userInput + '</div>');
-                        
-                        // Append new assistant message
-                        $("#chat-box").append('<div class="assistant"><strong>Assistant:</strong> ' + data.response + '</div>');
-                        
-                        // Update the full conversation history
-                        $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);  // Auto-scroll to the bottom
-                        $("#user_input").val("");  // Clear the input field
-                    }
+        function appendMessage(message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message ' + type;
+            messageElement.innerText = message;
+            document.getElementById('messages').appendChild(messageElement);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        function sendMessage() {
+            const inputBox = document.getElementById('user-input');
+            const userInput = inputBox.value;
+            if (userInput.trim()) {
+                appendMessage(userInput, 'user-message');
+                inputBox.value = '';
+                // Send userInput to the server
+                fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: userInput })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    appendMessage(data.response, 'bot-message');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                 });
-            });
-        });
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
     </script>
 </body>
 </html>
