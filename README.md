@@ -7,4 +7,4 @@
  - Finally publish as webapp for demonstration purposes.
 
 First create .env file and specify DATA_PATH and CHROMA_PATH for your documents files location and where you want to save chromadb collections respectively.
-Run application via app.py and use localhost.
+Then run application via app.py and use localhost.
