@@ -45,6 +45,10 @@ class RAG:
         # Load documents
         documents = []
         ids = []
+        
+        # Get one or more PDF files in the folder
+        pdf_files = [os.path.join(DATA_PATH, file) for file in os.listdir(DATA_PATH) if file.endswith('.pdf')]
+        
         for pdf_file in pdf_files:
             loader = PyPDFLoader(pdf_file)
             loaded_documents = loader.load()  # These are the document objects

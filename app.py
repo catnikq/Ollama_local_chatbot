@@ -22,7 +22,8 @@ db = RAG()
 collection = db.chroma_client.get_or_create_collection(name="my_documents")
 
 # Add the document(s) to the ChromaDB collection
-# db.add_documents(pdf_files=[file_path], collection=collection)
+# pdf_files = [os.path.join(file_path, file) for file in os.listdir(file_path) if file.endswith('.pdf')]
+# file_loader.add_documents(pdf_files=pdf_files, collection=collection)
 
 # Run html template for UI
 @app.route('/')
