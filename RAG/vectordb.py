@@ -2,7 +2,6 @@ import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import chromadb
-
 import ollama
 
 from dotenv import load_dotenv
@@ -12,7 +11,7 @@ load_dotenv()
 DATA_PATH = os.environ.get("DATA_PATH")
 CHROMA_PATH = os.environ.get("CHROMA_PATH")
 
-class FileLoader:
+class RAG:
     def __init__(self) -> None:
         """
         Initialize the FileLoader with ChromaDB settings and embedding model.
@@ -24,7 +23,7 @@ class FileLoader:
         
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
+            chunk_size=1000,
             chunk_overlap=50
         )
         
@@ -77,7 +76,19 @@ class FileLoader:
         
         print(f"Added {len(all_splits)} chunks to the collection.")
 
-    def retrieve(self, query, collection, top_k=5):
+    def retrieve(self, query, collection):
+        """Retrieve relevant chunks based on user's query
+
+        Args:
+            query (str): User's query (or question/prompt)
+            collection: ChromaDB collection of choice
+
+        Raises:
+            ValueError: Collection is not set.
+
+        Returns:
+            data: embedding from collection.
+        """
         # Set an existing collection
         self.collection = collection
         if self.collection is None:
@@ -90,9 +101,9 @@ class FileLoader:
         
         result = self.collection.query(
             query_embeddings=[response["embedding"]],
-            n_results=1
+            n_results=5
         )
         
-        data = result['documents'][0][0]
+        data = [item for item in result['documents'][0]]
         return data
         
