@@ -34,18 +34,13 @@ def send():
     # Get user input from the request
     user_input = request.json.get('query', '')
 
-    # Start the conversation if it's the first message
-    if user_input.strip().lower() == 'start':
-        return jsonify({
-            'response': "Conversation started.\nYou: \nAI: "
-        })
-
     # RAG retrieval: retrieve relevant context for the query
     retriever = db.retrieve(collection=collection, query=user_input)
     retrieved_data = "\n\n".join(retriever)
 
     # Create a new prompt using the retrieved context and user input
     new_prompt = f"""Using this data: {retrieved_data}. Respond to this message: {user_input}.
+    These data are related to some documents. Your task is to answer user's question about the content.
     Don't mention the data for user, only give them the answer.
     You are free to interpret the information as long as it is truthful."""
 
