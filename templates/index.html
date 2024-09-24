@@ -15,12 +15,38 @@
             margin: 0;
             padding: 0;
         }
+        .main-container {
+            display: flex;
+            width: 100%;
+        }
         .chat-container {
+            width: calc(100% - 300px);
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            height: 100%;
             padding: 10px;
+        }
+        .faq-container{
+            width: 300px;
+            height: 100vh;
+            background-color: #444;
+            padding: 10px;
+            border-right: 1px solid #555;
+            overflow-y: auto;
+        }
+        .faq-container h2 {
+            color: white;
+        }
+        .faq-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            background-color: #555;
+            border-radius: 5px;
+        }
+        .faq-item:hover {
+            background-color: #666;
         }
         .messages {
             flex: 1;
@@ -29,6 +55,9 @@
             border: 1px solid #555;
             border-radius: 5px;
             background-color: #444;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
         }
         .message {
             margin-bottom: 10px;
@@ -70,17 +99,50 @@
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="messages" id="messages">
-            <!-- Messages will be displayed here -->
+    <div class="main-container">
+        <div class="faq-container">
+            <h2>FAQ</h2>
+            <div id="faq-items">
+                <!-- FAQ items will be dynamically loaded here -->
+            </div>
         </div>
-        <div class="input-container">
-            <input type="text" class="input-box" id="user-input" placeholder="Type your message..." onkeydown="handleKeyDown(event)">
-            <button class="send-button" onclick="sendMessage()">Send</button>
+
+        <div class="chat-container">
+            <div class="messages" id="messages">
+                <!-- Messages will be displayed here -->
+            </div>
+            <div class="input-container">
+                <input type="text" class="input-box" id="user-input" placeholder="Type your message..." onkeydown="handleKeyDown(event)">
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Fetch FAQ questions from the server
+        function loadFAQs() {
+            fetch('/faq')
+                .then(response => response.json())
+                .then(data => {
+                    const faqContainer = document.getElementById('faq-items');
+                    faqContainer.innerHTML = ''; // Clear previous content if any
+
+                    data.questions.forEach(question => {
+                        // Create a div for each FAQ item
+                        const faqItem = document.createElement('div');
+                        faqItem.className = 'faq-item';
+                        faqItem.innerText = question;
+                        faqItem.onclick = () => selectFAQ(question);
+                        // Append each FAQ item to the FAQ container
+                        faqContainer.appendChild(faqItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading FAQ:', error);
+                });
+        }
+        
+        // Append the message to the chat window
         function appendMessage(message, type) {
             const messageElement = document.createElement('div');
             messageElement.className = 'message ' + type;
@@ -89,6 +151,7 @@
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         }
 
+        // Send user input to the backend
         function sendMessage() {
             const inputBox = document.getElementById('user-input');
             const userInput = inputBox.value;
@@ -113,12 +176,45 @@
             }
         }
 
+        // Handle pressing Enter key
         function handleKeyDown(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 sendMessage();
             }
         }
+
+        // Handle FAQ item click
+        function selectFAQ(question) {
+            // Send the selected FAQ question to the backend
+            fetch('/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the question in the chat window
+                appendMessage(`You: ${question}`, 'user-message');
+                // Display the AI's response
+                appendMessage(data.response, 'bot-message');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Load the FAQs when the page loads
+        window.onload = function() {
+            loadFAQs();
+        }
+
+        // Load the FAQs when the page loads
+        window.onload = function() {
+            loadFAQs();
+        };
     </script>
 </body>
 </html>
