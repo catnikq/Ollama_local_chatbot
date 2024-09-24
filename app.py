@@ -42,7 +42,7 @@ def send():
     # Create a new prompt using the retrieved context and user input
     new_prompt = f"""Using this data: {retrieved_data}. Respond to this message: {user_input}.
     These data are related to some documents. Your task is to answer user's question about the content.
-    Don't mention the data for user, only give them the answer.
+    Don't mention the data for user, only give them the answer with some context.
     You are free to interpret the information as long as it is truthful."""
 
     # LLM invocation: pass the new prompt to the model
@@ -59,6 +59,20 @@ def send():
         'user_message': f"You: {user_input}",
         'response': f"AI: {ai_response}"
     })
+
+# Serve the FAQ data dynamically
+@app.route('/faq', methods=['GET'])
+def get_faq():
+    faq_data = {
+        'questions': [
+            'How to get money in Monopoly?',
+            'How jail works?',
+            'How auction works?',
+            'What is the winning goal?',
+            'How to trade with another player?'
+        ]
+    }
+    return jsonify(faq_data)
 
 # Start app
 if __name__ == '__main__':
