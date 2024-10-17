@@ -35,15 +35,28 @@ def send():
     # Get user input from the request
     user_input = request.json.get('query', '')
 
+    # Employing Query Expansion to get clearer query. Helpful when user's questions can be vague
+    query_expansion_prompt = f"""Expand this query to include additional relevant terms and synonyms: {user_input}
+    """
+    
+    expanded_answer = llm.model.invoke(
+        model=llm.model.model,
+        input=query_expansion_prompt
+    )
+    
+    # Concatenate original input and expanded input
+    combined_query = f"{user_input} {expanded_answer.content}"
+    
     # RAG retrieval: retrieve relevant context for the query
-    retriever = db.retrieve(collection=collection, query=user_input)
+    # Use embedded hypothetical answer as query
+    retriever = db.retrieve(collection=collection, query=combined_query)
     retrieved_data = "\n\n".join(retriever)
 
     # Create a new prompt using the retrieved context and user input
     new_prompt = f"""Using this data: {retrieved_data}. Respond to this message: {user_input}.
-    These data are related to some documents. Your task is to answer user's question about the content.
+    You are a QA assistant. You answers user's question with given data.
     Don't mention the data for user, only give them the answer with some context.
-    You are free to interpret the information as long as it is truthful."""
+    If the data does not make sense, you are free to inteprete truthfully."""
 
     # LLM invocation: pass the new prompt to the model
     output = llm.model.invoke(
