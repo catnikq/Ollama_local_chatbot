@@ -70,7 +70,7 @@ def send():
     # Prepare the response data to send back to the front-end
     return jsonify({
         'user_message': f"You: {user_input}",
-        'response': f"AI: {ai_response}"
+        'response': ai_response
     })
 
 # Serve the FAQ data dynamically
@@ -89,4 +89,4 @@ def get_faq():
 
 # Start app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
