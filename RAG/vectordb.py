@@ -23,7 +23,7 @@ class RAG:
         
         # Initialize text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
+            chunk_size=450,
             chunk_overlap=50
         )
         
